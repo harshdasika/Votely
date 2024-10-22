@@ -18,6 +18,7 @@
 
 <body>
     <div class="container center-align" id="login-container">
+        <img src="imgs/144.png" alt="logo" >
         <h2>Welcome to Votely</h2>
         <p>Please register/sign-in with your Google account to continue</p>
 
@@ -32,6 +33,33 @@
 
     <!-- Custom JavaScript -->
     <script src="assets/js/scripts.js"></script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getMessaging } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-messaging.js";
+        // TODO: Add SDKs for Firebase products
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Votely Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAf49wkzv5cI2ymZX4s2_PpNPq_8c9PGqU",
+          authDomain: "votely-492k.firebaseapp.com",
+          projectId: "votely-492k",
+          storageBucket: "votely-492k.appspot.com",
+          messagingSenderId: "460551904614",
+          appId: "1:460551904614:web:a93225f7d674fb651abca7",
+          measurementId: "G-XSDFNR8YK0"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const messaging = getMessaging(app);
+      </script>
 </body>
 
 
