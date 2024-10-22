@@ -1,0 +1,33 @@
+
+body {
+    background-color: #1571a6;
+    background-image: linear-gradient(to right, #22a4ef, #0012b1);
+    font-family: 'Roboto', sans-serif;
+}
+
+#login-container {
+    margin-top: 100px;
+    background-color: white;
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 2.5rem;
+    color: #424242;
+    margin-bottom: 50px;
+}
+
+p {
+    font-size: 1.2rem;
+    color: #757575;
+}
+
+.g-signin2 {
+    margin-top: 30px;
+}
+
+.container {
+    max-width: 600px;
+}
