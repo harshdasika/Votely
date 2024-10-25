@@ -1,0 +1,19 @@
+{
+    "name": "votely",
+    "version": "1.0.0",
+    "description": "",
+    "main": "jest.config.js",
+    "directories": {
+      "test": "tests"
+    },
+    "scripts": {
+      "test": "jest"
+    },
+    "devDependencies": {
+        "jest": "^latest"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
+  

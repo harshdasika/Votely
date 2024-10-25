@@ -8,40 +8,245 @@
     <title>Dashboard</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.ico"/>
 
-    <!-- Import Google Material Icons and Materialize CSS -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 
 <body>
 
     <!-- Navbar -->
-    <nav>
-        <div class="nav-wrapper light-blue">
-            <a href="#" class="brand-logo" style="padding-left: 20px;">Your Dashboard</a>
-            <ul id="nav-mobile" class="right">
-                <!-- Profile Dropdown Trigger -->
-                <li>
-                    <a href="#" class="dropdown-trigger" data-target="profile-dropdown">
-                        <img id="profile-image" src="" alt="Profile" class="circle" style="width: 40px; height: 40px;">
-                    </a>
-                </li>
-            </ul>
+    <nav class="nav-wrapper light-blue">
+        <div class="container">
+            <a href="userDash.html" class="brand-logo">Your Dashboard</a>
+            <md-filled-button id="profile-menu-button" class="right">
+                <i class="material-icons left">account_circle</i> Profile
+            </md-filled-button>
         </div>
     </nav>
 
-    <!-- Dropdown Structure -->
-    <ul id="profile-dropdown" class="dropdown-content">
-        <li><a href="#!">Profile</a></li>
-        <li class="divider"></li>
-        <li><a href="#!" id="logout">Log Out</a></li>
-    </ul>
+    <md-menu id="profile-menu" positioning="fixed" anchor="profile-menu-button" hidden>
+        <md-menu-item>
+            <div slot="headline">Profile Settings</div>
+        </md-menu-item>
+        <hr class="menu-divider"/>
+        <md-menu-item id="logout-button">
+            <div slot="headline">Log Out</div>
+        </md-menu-item>
+    </md-menu>
 
-    <!-- Custom JavaScript -->
+    <div class="welcome-message">
+        <p>Welcome to your dashboard. This is where you can manage your groups. Create/Join a group by clicking the + button.</p>
+    </div>
+
+    <!-- Group Create Button -->
+    <md-branded-fab id="add-group-button" size="large" label="Add Group">
+        <svg slot="icon" viewBox="0 0 36 36">
+            <path fill="#34A853" d="M16 16v14h4V20z"></path>
+            <path fill="#4285F4" d="M30 16H20l-4 4h14z"></path>
+            <path fill="#FBBC05" d="M6 16v4h10l4-4z"></path>
+            <path fill="#EA4335" d="M20 16V6h-4v14z"></path>
+            <path fill="none" d="M0 0h36v36H0z"></path>
+        </svg>
+        <span class="fab-label">Add</span>
+    </md-branded-fab>
+
+
+    <div class="group-cards-container" id="group-cards-container"></div>
+
+
+    <md-dialog id="group-dialog">
+        <div class="dialog-header">
+            <div slot="headline">Manage Groups</div>
+            <i id="close-x-button" class="material-icons close-dialog">close</i>
+        </div>
+        <div slot="content">
+
+            <div class="row">
+                <ul class="tabs">
+                    <li class="tab col s6"><a href="#create-group-tab">Create Group</a></li>
+                    <li class="tab col s6"><a href="#join-group-tab">Join Group</a></li>
+                </ul>
+            </div>
+
+            <!-- Create Group Tab -->
+            <div id="create-group-tab" class="col s12">
+                <h5>Create Group</h5>
+                <div class="input-field">
+                    <input id="group-name" type="text" class="validate">
+                    <label for="group-name">Enter Group Name</label>
+                </div>
+                <div class="input-field">
+                    <input id="group-description" type="text" class="validate">
+                    <label for="group-description">Enter Group Description</label>
+                </div>
+                <div class="input-field">
+                    <input id="custom-group-id" type="text" class="validate">
+                    <label for="custom-group-id">Enter Custom Group ID</label>
+                </div>
+                <button class="btn waves-effect waves-light" id="create-group-button">Create</button>
+            </div>
+
+            <!-- Join Group Tab -->
+            <div id="join-group-tab" class="col s12">
+                <h5>Join Group</h5>
+                <div class="input-field">
+                    <input id="join-group-name" type="text" class="validate">
+                    <label for="join-group-name">Group Name</label>
+                </div>
+                <div class="input-field">
+                    <input id="join-group-id" type="text" class="validate">
+                    <label for="join-group-id">Group ID</label>
+                </div>
+                <button class="btn waves-effect waves-light" id="join-group-button">Join</button>
+            </div>
+        </div>
+
+    </md-dialog>
+
+    <!-- Material JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="assets/js/dashboard.js"></script>
+
+    <script type="module">
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf49wkzv5cI2ymZX4s2_PpNPq_8c9PGqU",
+            authDomain: "votely-492k.firebaseapp.com",
+            projectId: "votely-492k",
+            storageBucket: "votely-492k.appspot.com",
+            messagingSenderId: "460551904614",
+            appId: "1:460551904614:web:a93225f7d674fb651abca7",
+            measurementId: "G-XSDFNR8YK0"
+        };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+        
+        const logoutButton = document.getElementById('logout-button');
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth); 
+                console.log("User logged out successfully.");
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Error logging out:", error);
+            }
+        });
+
+        // refresh group list after creating group
+        document.getElementById('create-group-button').addEventListener('click', async () => {
+            fetchUserGroups();
+        });
+    
+        // Group Creation Logic
+        document.getElementById('create-group-button').addEventListener('click', async () => {
+            const groupName = document.getElementById('group-name').value;
+            const groupDescription = document.getElementById('group-description').value;
+            const customGroupId = document.getElementById('custom-group-id').value;
+            const user = auth.currentUser;
+    
+            if (groupName && groupDescription && customGroupId && user) {
+                try {
+                    const groupDocRef = doc(db, "Group", customGroupId);
+    
+                    await setDoc(groupDocRef, {
+                        group_name: groupName,
+                        group_id: customGroupId,
+                        creator_id: user.uid,
+                        description: groupDescription,
+                        members: [user.uid],
+                        created_at: serverTimestamp()
+                    });
+    
+                    console.log("Group created successfully!");
+                    document.getElementById('group-dialog').removeAttribute('open');
+                    fetchUserGroups(); 
+                } catch (error) {
+                    console.error("Error creating group:", error);
+                }
+            } else {
+                alert("Please fill in all fields to create a group.");
+            }
+            fetchUserGroups();
+        });
+
+        async function fetchUserGroups() {
+            const user = auth.currentUser;
+            if (user) {
+                const userId = user.uid;
+
+                // query Firestore for all groups where user is member
+                const groupsRef = collection(db, "Group");
+                const q = query(groupsRef, where("members", "array-contains", userId));
+                const querySnapshot = await getDocs(q);
+
+                const groupCardsContainer = document.getElementById("group-cards-container");
+
+                // Clear container before adding new cards
+                groupCardsContainer.innerHTML = "";
+
+                if (querySnapshot.empty) {
+                    // If not in any groups, display message
+                    groupCardsContainer.innerHTML = "<p>You are not in any groups.</p>";
+                } else {
+                    // Loop through groups, create card for each
+                    querySnapshot.forEach((doc) => {
+                        const groupData = doc.data();
+                        const groupCard = createGroupCard(groupData);
+                        groupCardsContainer.appendChild(groupCard);
+                    });
+                }
+            } else {
+                console.log('No user is authenticated.');
+            }
+        }
+
+        // Create a group card for dashboard
+        function createGroupCard(group) {
+            const card = document.createElement("md-card");
+            card.classList.add("md-card");
+
+            const cardContent = `
+                <div class="card-content">
+                    <h2 class="md-card-title">${group.group_name}</h2>
+                    <p>${group.description}</p>
+                    <p><strong>Group ID:</strong> ${group.group_id}</p>
+                </div>
+                <div class="card-action">
+                    <md-button class="enter-group-button">Enter Group</md-button>
+                </div>
+            `;
+            card.innerHTML = cardContent;
+            return card;
+        }
+
+        // Fetch user's groups when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    fetchUserGroups();
+                } else {
+                    console.log('No user is logged in.');
+                    window.location.href = "index.html";
+                }
+            });
+        });
+
+    </script>
+
 
 </body>
 </html>
+ 
