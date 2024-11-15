@@ -1,3 +1,3 @@
 # Votely
 
-![Jest Tests](https://github.com/<your-username>/<your-repo>/actions/workflows/ci.yml/badge.svg)
+![Jest Tests](https://github.com/<harshdasika>/<Votely>/.github/workflows/main.yml/badge.svg)
