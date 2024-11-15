@@ -7,6 +7,9 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 
+#DS STore
+.DS_Store
+
 # Firebase cache
 .firebase/
 
@@ -67,3 +70,4 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
