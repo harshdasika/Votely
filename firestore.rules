@@ -1,16 +1,26 @@
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Users can only read and write their own data
+    match /User/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Groups: Users can read if they are members; only the creator can modify
+    match /Group/{groupId} {
+      allow read: if request.auth != null && request.auth.uid in resource.data.members;
+      allow write: if request.auth != null && request.auth.uid == resource.data.creator_id;
+    }
+
+    // ItineraryCard: Users can read/write if they are members of the associated group
+    match /ItineraryCard/{cardId} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid in get(/databases/$(database)/documents/Group/$(resource.data.group_id)).data.members;
+    }
+    
+    // Default deny all other requests
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2024, 11, 21);
+      allow read, write: if false;
     }
   }
 }

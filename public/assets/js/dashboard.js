@@ -39,3 +39,4 @@ document.addEventListener('DOMContentLoaded', function () {
         dialog.removeAttribute('open'); // Hide the dialog
     });
 });
+

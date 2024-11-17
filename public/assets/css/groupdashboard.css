@@ -76,8 +76,8 @@ md-menu-item:hover {
 }
 
 
-/* Add Group Button */
-#add-group-button {
+/* Add Itinerary Button */
+#add-itinerary-button {
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -94,10 +94,10 @@ md-menu-item:hover {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-#add-group-button:hover {
+#add-itinerary-button:hover {
     background-color: #e0e0e0;
 }
-#add-group-button svg {
+#add-itinerary-button svg {
     width: 32px;
     height: 32px;
     margin-right: 10px;
@@ -153,8 +153,8 @@ md-dialog[open] {
 }
 
 
-/*  Group Card Container */
-.group-cards-container {
+/* Itinerary Card Container */
+.itinerary-cards-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);  /* 4 cards per row */
     gap: 16px;  /* Spacing between cards */
@@ -167,20 +167,53 @@ md-dialog[open] {
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     background-color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 .md-card-title {
     font-size: 18px;
     font-weight: bold;
 }
 .card-action {
-    text-align: right;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
 }
-.card-action md-button {
-    background-color: #4285F4;
-    color: white;
-    border: none;
-    padding: 10px 20px;
+.card-action p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+    text-align: center;
+}
+.card-action .md-vote-button {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+    color: white;
+    text-transform: uppercase;
+    border: none;
 }
- 
+.md-vote-button.yes-vote {
+    background-color: #a5d6a7; /* Light green */
+}
+.md-vote-button.yes-vote:hover {
+    background-color: #66bb6a; /* Darker green */
+}
+.md-vote-button.no-vote {
+    background-color: #ef9a9a; /* Light red */
+}
+.md-vote-button.no-vote:hover {
+    background-color: #e57373; /* Darker red */
+}
+.scrollable {
+    max-height: 150px;
+    overflow-y: auto;
+}

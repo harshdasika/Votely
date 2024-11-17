@@ -115,7 +115,7 @@
         // https://firebase.google.com/docs/web/setup#available-libraries
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         
         // Firebase configuration
         const firebaseConfig = {
@@ -182,14 +182,58 @@
             fetchUserGroups();
         });
 
+        // Group Join Logic
+        document.getElementById('join-group-button').addEventListener('click', async () => {
+            const groupName = document.getElementById('join-group-name').value;
+            const groupId = document.getElementById('join-group-id').value;
+            const user = auth.currentUser;
+
+            if (groupName && groupId && user) {
+                try {
+                    const groupsRef = collection(db, "Group");
+                    const q = query(groupsRef, where("group_name", "==", groupName), where("group_id", "==", groupId));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        querySnapshot.forEach(async (doc) => {
+                            const groupDocRef = doc.ref;
+
+                            // Update members array
+                            await setDoc(
+                                groupDocRef,
+                                { members: arrayUnion(user.uid) },
+                                { merge: true }
+                            );
+
+                            console.log("Successfully joined the group!");
+                            alert(`You have joined the group: ${groupName}`);
+                            
+                            // Close the modal dialog
+                            document.getElementById('group-dialog').removeAttribute('open');
+
+                            // Refresh group list
+                            fetchUserGroups();
+                        });
+                    } else {
+                        alert("No group found with the provided name and ID.");
+                    }
+                } catch (error) {
+                    console.error("Error joining group:", error);
+                    alert("An error occurred while trying to join the group.");
+                }
+            } else {
+                alert("Please fill in both fields to join a group.");
+            }
+        });
+
         async function fetchUserGroups() {
             const user = auth.currentUser;
             if (user) {
-                const userId = user.uid;
+                const userID = user.uid;
 
                 // query Firestore for all groups where user is member
                 const groupsRef = collection(db, "Group");
-                const q = query(groupsRef, where("members", "array-contains", userId));
+                const q = query(groupsRef, where("members", "array-contains", userID));
                 const querySnapshot = await getDocs(q);
 
                 const groupCardsContainer = document.getElementById("group-cards-container");
@@ -207,6 +251,21 @@
                         const groupCard = createGroupCard(groupData);
                         groupCardsContainer.appendChild(groupCard);
                     });
+
+                    const enterButtons = document.querySelectorAll(".enter-group-button");
+                    enterButtons.forEach((button) => {
+                        button.addEventListener("click", (event) => {
+                            const groupId = event.target.getAttribute("data-group-id");
+                            if (groupId) {
+                                // Encode group ID for safe URL usage
+                                const encodedGroupId = encodeURIComponent(groupId);
+                                console.log("Navigating to groupDash with encoded groupId:", encodedGroupId);
+                                window.location.href = `groupDash.html?group_id=${encodedGroupId}`;
+                            } else {
+                                console.error("Group ID is missing on the button.");
+                            }
+                        });
+                    });
                 }
             } else {
                 console.log('No user is authenticated.');
@@ -214,6 +273,7 @@
         }
 
         // Create a group card for dashboard
+        // <md-button class="enter-group-button">Enter Group</md-button>
         function createGroupCard(group) {
             const card = document.createElement("md-card");
             card.classList.add("md-card");
@@ -225,7 +285,7 @@
                     <p><strong>Group ID:</strong> ${group.group_id}</p>
                 </div>
                 <div class="card-action">
-                    <md-button class="enter-group-button">Enter Group</md-button>
+                    <md-button class="enter-group-button" data-group-id="${group.group_id}">Enter Group</md-button>
                 </div>
             `;
             card.innerHTML = cardContent;
