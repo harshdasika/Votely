@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-signin-client_id" content="988826026614-nqfgqj8h6rcm5ot7us9dcomoq8fuksko.apps.googleusercontent.com">
+    <title>Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="imgs/favicon.ico"/>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="assets/css/groupdashboard.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="nav-wrapper light-blue">
+        <div class="container">
+            <a href="userDash.html" class="brand-logo">Group Dashboard</a>
+            <md-filled-button id="profile-menu-button" class="right">
+                <i class="material-icons left">account_circle</i> Profile
+            </md-filled-button>
+        </div>
+    </nav>
+
+    <md-menu id="profile-menu" positioning="fixed" anchor="profile-menu-button" hidden>
+        <md-menu-item>
+            <div slot="headline">Profile Settings</div>
+        </md-menu-item>
+        <hr class="menu-divider"/>
+        <md-menu-item id="logout-button">
+            <div slot="headline">Log Out</div>
+        </md-menu-item>
+    </md-menu>
+
+    <div class="welcome-message">
+        <p>Welcome to the group dashboard. This is where you can propose itinerary cards. Create one by by clicking the + button.</p>
+    </div>
+
+    <!-- Itinerary Create Button -->
+    <md-branded-fab id="add-itinerary-button" size="large" label="Add Itinerary">
+        <svg slot="icon" viewBox="0 0 36 36">
+            <path fill="#34A853" d="M16 16v14h4V20z"></path>
+            <path fill="#4285F4" d="M30 16H20l-4 4h14z"></path>
+            <path fill="#FBBC05" d="M6 16v4h10l4-4z"></path>
+            <path fill="#EA4335" d="M20 16V6h-4v14z"></path>
+            <path fill="none" d="M0 0h36v36H0z"></path>
+        </svg>
+        <span class="fab-label">Add</span>
+    </md-branded-fab>
+
+
+    <div class="itinerary-cards-container" id="itinerary-cards-container"></div>
+
+
+    <md-dialog id="itinerary-dialog">
+        <div class="dialog-header">
+            <div slot="headline"></div>
+            <i id="close-itinerary-dialog" class="material-icons close-dialog">close</i>
+        </div>
+        <div slot="content">
+            <h5>Create Itinerary</h5>
+            <div class="input-field">
+                <input id="itinerary-title" type="text" class="validate" required>
+                <label for="itinerary-title">Enter Itinerary Title</label>
+            </div>
+            <div class="input-field">
+                <textarea id="itinerary-description" class="materialize-textarea validate" required></textarea>
+                <label for="itinerary-description">Enter Itinerary Description</label>
+            </div>
+            <button class="btn waves-effect waves-light" id="create-itinerary-button">Create</button>
+        </div>
+
+    </md-dialog>
+
+    <!-- Material JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="assets/js/g_dashboard.js"></script>
+
+    <script type="module">
+        // https://firebase.google.com/docs/web/setup#available-libraries
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDoc, getDocs, arrayUnion, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf49wkzv5cI2ymZX4s2_PpNPq_8c9PGqU",
+            authDomain: "votely-492k.firebaseapp.com",
+            projectId: "votely-492k",
+            storageBucket: "votely-492k.appspot.com",
+            messagingSenderId: "460551904614",
+            appId: "1:460551904614:web:a93225f7d674fb651abca7",
+            measurementId: "G-XSDFNR8YK0"
+        };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        const groupID = "";
+
+        const addItineraryButton = document.getElementById("add-itinerary-button");
+        const itineraryDialog = document.getElementById("itinerary-dialog");
+        const closeDialogButton = document.getElementById("close-itinerary-dialog");
+
+        // Open dialog
+        addItineraryButton.addEventListener("click", () => {
+            itineraryDialog.setAttribute("open", true);
+        });
+        // Close dialog
+        closeDialogButton.addEventListener("click", () => {
+            itineraryDialog.removeAttribute("open");
+        });
+        
+        const logoutButton = document.getElementById('logout-button');
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth); 
+                console.log("User logged out successfully.");
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Error logging out:", error);
+            }
+        });
+
+        // window.location.href = "userDash.html";
+        async function fetchGroupIDFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupID = urlParams.get("group_id");
+
+            if (!groupID) {
+                console.error("Group ID not found in URL.");
+                alert("Group ID is missing. Redirecting to dashboard.");
+                window.location.href = "userDash.html";
+                return null;
+            }
+
+            // Decode group ID to handle special characters
+            const decodedGroupID = decodeURIComponent(groupID);
+            console.log("Decoded Group ID from URL:", decodedGroupID);
+
+            return decodedGroupID;
+        }
+
+        function generateCardID() {
+            return Math.random().toString(36).substring(2, 12);
+        }
+
+        async function fetchItineraries(groupID) {
+            if (groupID) {
+
+                // query Firestore for all itineraries in that group
+                const itinerariesRef = collection(db, "ItineraryCard");
+                const q = query(itinerariesRef, where("group_id", "==", groupID));
+                const querySnapshot = await getDocs(q);
+
+                const itineraryCardsContainer = document.getElementById("itinerary-cards-container");
+
+                // Clear container before adding new cards
+                itineraryCardsContainer.innerHTML = "";
+
+                if (querySnapshot.empty) {
+                    // If no itineraries, display message
+                    itineraryCardsContainer.innerHTML = "<p>There are no proposed itineraries.</p>";
+                } else {
+                    // Loop through itineraries, create card for each
+                    querySnapshot.forEach((doc) => {
+                        const itineraryData = doc.data();
+                        const itineraryCard = createItineraryCard(itineraryData);
+                        itineraryCardsContainer.appendChild(itineraryCard);
+                    });
+                }
+            } else {
+                console.log("Group ID is not set.")
+            }
+        }
+
+        async function createItinerary(groupID) {
+            const title = document.getElementById("itinerary-title").value;
+            const description = document.getElementById("itinerary-description").value;
+            const user = auth.currentUser;
+
+            if (title && description && user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "User", user.uid));
+                    const userName = userDoc.exists() ? userDoc.data().name : "Unkown User";
+                    const cardID = generateCardID();
+
+                    await setDoc(doc(db, "ItineraryCard", cardID), {
+                        card_id: cardID,
+                        group_id: groupID,
+                        title,
+                        description,
+                        proposed_by: userName,
+                        created_at: serverTimestamp(),
+                        Yes_Votes: [],
+                        No_Votes: []
+                    });
+
+                    console.log("Itinerary card created successfully.")
+                    document.getElementById("itinerary-dialog").removeAttribute("open");
+                    fetchItineraries(groupID);
+                } catch (error) {
+                    console.error("Error creating itinerary card:", error);
+                }
+            } else {
+                alert("Please fill out all the fields.");
+            }
+        }
+
+        function createItineraryCard(itinerary) {
+            const card = document.createElement("md-card");
+            card.classList.add("md-card");
+
+            const yesVoteCount = itinerary.Yes_Votes ? itinerary.Yes_Votes.length : 0;
+            const noVoteCount = itinerary.No_Votes ? itinerary.No_Votes.length : 0;
+
+            const cardContent = `
+                <div class="card-content scrollable">
+                    <h2 class="md-card-title">${itinerary.title}</h2>
+                    <p>${itinerary.description}</p>
+                    <p><strong>Proposed By:</strong> ${itinerary.proposed_by}</p>
+                </div>
+                <div class="card-action">
+                    <div>
+                        <md-button class="md-vote-button yes-vote" data-card-id="${itinerary.card_id}" data-vote-type="yes">Yes</md-button>
+                        <p># Yes: ${yesVoteCount}</p>
+                    </div>
+                    <div>
+                        <md-button class="md-vote-button no-vote" data-card-id="${itinerary.card_id}" data-vote-type="no">No</md-button>
+                        <p># No: ${noVoteCount}</p>
+                    </div>
+                </div>
+            `;
+            card.innerHTML = cardContent;
+
+            const yesVoteButton = card.querySelector(".yes-vote");
+            yesVoteButton.addEventListener("click", () => voteOnItinerary(itinerary.card_id, itinerary.group_id, "yes"));
+            const noVoteButton = card.querySelector(".no-vote");
+            noVoteButton.addEventListener("click", () => voteOnItinerary(itinerary.card_id, itinerary.group_id, "no"));
+
+            return card;
+        }
+
+        async function voteOnItinerary(cardID, groupId, voteType) {
+            const user = auth.currentUser;
+            if (!user) {
+                console.error("No user authenticated.");
+                alert("You need to log in to vote.");
+                return;
+            }
+
+            console.log(`Vote action: ${voteType}, Card ID: ${cardID}, Group ID: ${groupId}`);
+
+            const itineraryDocRef = doc(db, "ItineraryCard", cardID);
+
+            try {
+                const docSnapshot = await getDoc(itineraryDocRef);
+
+                if (docSnapshot.exists()) {
+                    const itineraryData = docSnapshot.data();
+                    const yesVotes = itineraryData.Yes_Votes || [];
+                    const noVotes = itineraryData.No_Votes || [];
+
+                    // Add or remove user from respective vote array
+                    if (voteType === "yes") {
+                        if (!yesVotes.includes(user.uid)) {
+                            yesVotes.push(user.uid);
+                            const index = noVotes.indexOf(user.uid);
+                            if (index > -1) noVotes.splice(index, 1); // Remove from No_Votes
+                        }
+                    } else if (voteType === "no") {
+                        if (!noVotes.includes(user.uid)) {
+                            noVotes.push(user.uid);
+                            const index = yesVotes.indexOf(user.uid);
+                            if (index > -1) yesVotes.splice(index, 1); // Remove from Yes_Votes
+                        }
+                    }
+
+                    console.log("Updated votes: ", { Yes_Votes: yesVotes, No_Votes: noVotes });
+
+                    // Update Firestore
+                    await setDoc(itineraryDocRef, { 
+                        Yes_Votes: yesVotes, 
+                        No_Votes: noVotes 
+                    }, { merge: true });
+
+                    console.log(`Vote updated: ${voteType}`);
+                    fetchItineraries(groupId); // Refresh the itineraries
+                } else {
+                    console.error("Itinerary card not found.");
+                }
+            } catch (error) {
+                console.error("Error updating vote:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    console.log("User is authenticated:", user.email);
+                    const groupID = await fetchGroupIDFromUrl(); // Fetch group ID from URL
+
+                    if (groupID) {
+                        console.log("Fetched group ID:", groupID);
+                        await fetchItineraries(groupID); // Fetch itineraries for this group
+                    } else {
+                        console.error("Group ID not found. Redirecting to dashboard.");
+                        window.location.href = "userDash.html";
+                    }
+                } else {
+                    console.log("No user authenticated. Redirecting to login.");
+                    window.location.href = "index.html";
+                }
+            });
+        });
+        document.getElementById("create-itinerary-button").addEventListener("click", async () => {
+            const groupID = await fetchGroupIDFromUrl(); // Fetch group ID
+            createItinerary(groupID);
+        });
+        
+    </script>
+
+
+</body>
+</html>
+ 
