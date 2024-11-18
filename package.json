@@ -10,7 +10,7 @@
       "test": "jest"
     },
     "devDependencies": {
-        "jest": "^latest"
+        "jest": "29.7.0"
     },
     "keywords": [],
     "author": "",
