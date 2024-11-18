@@ -2,12 +2,10 @@
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 
 jest.mock('firebase/auth', () => {
-  const originalModule = jest.requireActual('firebase/auth');
   return {
-    ...originalModule,
     getAuth: jest.fn(),
     signInWithPopup: jest.fn(),
-    GoogleAuthProvider: jest.fn(),
+    GoogleAuthProvider: jest.fn(() => ({})),
     signOut: jest.fn(),
   };
 });
