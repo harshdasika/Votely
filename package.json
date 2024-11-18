@@ -17,5 +17,8 @@
     },
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "dependencies": {
+        "firebase": "^11.0.2"
+    }
 }
