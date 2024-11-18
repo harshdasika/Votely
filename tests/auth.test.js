@@ -11,7 +11,7 @@ jest.mock('firebase/auth', () => {
     signOut: jest.fn(),
   };
 });
-
+ 
 describe('Firebase Authentication', () => {
     test('User should login with Google', async () => {
         const mockUser = { uid: '123', displayName: 'Test User' };
