@@ -55,7 +55,7 @@ describe('voteOnItinerary', () => {
     jest.clearAllMocks();
   });
 
-  test('successfully casts a Yes vote', async () => {
+  test('User successfully casts a Yes vote', async () => {
     getDoc.mockResolvedValueOnce({
       exists: () => true,
       data: () => ({ Yes_Votes: [], No_Votes: [] }),
@@ -73,7 +73,7 @@ describe('voteOnItinerary', () => {
     );
   });
 
-  test('removes user from No votes when casting Yes vote', async () => {
+  test('Firestore removes user from No votes when casting Yes vote', async () => {
     getDoc.mockResolvedValueOnce({
       exists: () => true,
       data: () => ({ Yes_Votes: [], No_Votes: ['test_user_id'] }),
@@ -91,7 +91,7 @@ describe('voteOnItinerary', () => {
     );
   });
 
-  test('throws error if user is not authenticated', async () => {
+  test('System throws error if user is not authenticated', async () => {
     getAuth.mockReturnValueOnce({ currentUser: null });
 
     await expect(voteOnItinerary('card_123', 'group_123', 'yes')).rejects.toThrow(
@@ -99,7 +99,7 @@ describe('voteOnItinerary', () => {
     );
   });
 
-  test('throws error if itinerary card does not exist', async () => {
+  test('System throws error if itinerary card does not exist', async () => {
     getDoc.mockResolvedValueOnce({ exists: () => false });
 
     await expect(voteOnItinerary('invalid_card_id', 'group_123', 'yes')).rejects.toThrow(
