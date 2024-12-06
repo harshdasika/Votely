@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-signin-client_id" content="988826026614-nqfgqj8h6rcm5ot7us9dcomoq8fuksko.apps.googleusercontent.com">
-    <title>Dashboard</title>
+    <title>Group Dashboard</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.ico"/>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -27,7 +27,7 @@
     </nav>
 
     <md-menu id="profile-menu" positioning="fixed" anchor="profile-menu-button" hidden>
-        <md-menu-item>
+        <md-menu-item id="profile-settings">
             <div slot="headline">Profile Settings</div>
         </md-menu-item>
         <hr class="menu-divider"/>
@@ -86,7 +86,8 @@
         // https://firebase.google.com/docs/web/setup#available-libraries
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDoc, getDocs, arrayUnion, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDoc, getDocs, arrayUnion, addDoc, 
+                 deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         
         // Firebase configuration
         const firebaseConfig = {
@@ -131,6 +132,60 @@
             }
         });
 
+        let timer;
+        async function startTimer(groupID) {
+            if (timer) {
+                clearTimeout(timer);
+            }
+
+            console.log("Starting 30-second timer");
+            timer = setTimeout(async () => {
+                console.log("Timer finished. Getting winning itinerary");
+                await finalizeItinerary(groupID);
+            }, 30000); // 30 seconds
+        }
+
+        async function finalizeItinerary(groupID) {
+            try {
+                const itinerariesRef = collection(db, "ItineraryCard");
+                const q = query(itinerariesRef, where("group_id", "==", groupID));
+                const querySnapshot = await getDocs(q);
+
+                let winningItinerary = null;
+                let maxYesVotes = -1;
+
+                // Determine itinerary with the most Yes votes
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const yesVotes = data.Yes_Votes ? data.Yes_Votes.length : 0;
+
+                    if (yesVotes > maxYesVotes) {
+                        maxYesVotes = yesVotes;
+                        winningItinerary = data;
+                    }
+                });
+
+                if (winningItinerary) {
+                    // Alert the winner details
+                    alert(`A final itinerary has been chosen!\n\nItinerary Title: ${winningItinerary.title}\nDescription: ${winningItinerary.description}`);
+                }
+
+                // Delete all itineraries in the group
+                querySnapshot.forEach(async (doc) => {
+                    await deleteDoc(doc.ref);
+                });
+
+                console.log("All itineraries deleted.");
+                fetchItineraries(groupID); // Refresh the UI
+            } catch (error) {
+                console.error("Error finalizing the itinerary:", error);
+            }
+        }
+
+        document.getElementById('profile-settings').addEventListener('click', () => {
+            window.location.href = "profile.html";
+        });
+
         // window.location.href = "userDash.html";
         async function fetchGroupIDFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -157,7 +212,7 @@
         async function fetchItineraries(groupID) {
             if (groupID) {
 
-                // query Firestore for all itineraries in that group
+                // Query Firestore for all itineraries in that group
                 const itinerariesRef = collection(db, "ItineraryCard");
                 const q = query(itinerariesRef, where("group_id", "==", groupID));
                 const querySnapshot = await getDocs(q);
@@ -171,12 +226,17 @@
                     // If no itineraries, display message
                     itineraryCardsContainer.innerHTML = "<p>There are no proposed itineraries.</p>";
                 } else {
-                    // Loop through itineraries, create card for each
+                    const itineraries = [];
                     querySnapshot.forEach((doc) => {
-                        const itineraryData = doc.data();
-                        const itineraryCard = createItineraryCard(itineraryData);
+                        itineraries.push(doc.data());
+                        const itineraryCard = createItineraryCard(doc.data());
                         itineraryCardsContainer.appendChild(itineraryCard);
                     });
+
+                    // Start the timer if there are 2 or more itineraries
+                    if (itineraries.length >= 2) {
+                        startTimer(groupID);
+                    }
                 }
             } else {
                 console.log("Group ID is not set.")
@@ -191,7 +251,7 @@
             if (title && description && user) {
                 try {
                     const userDoc = await getDoc(doc(db, "User", user.uid));
-                    const userName = userDoc.exists() ? userDoc.data().name : "Unkown User";
+                    const userName = userDoc.exists() ? userDoc.data().name : "Unknown User";
                     const cardID = generateCardID();
 
                     await setDoc(doc(db, "ItineraryCard", cardID), {

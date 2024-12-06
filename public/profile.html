@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-signin-client_id" content="988826026614-nqfgqj8h6rcm5ot7us9dcomoq8fuksko.apps.googleusercontent.com">
-    <title>Dashboard</title>
+    <title>Profile</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.ico"/>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -25,19 +25,73 @@
         </div>
     </nav>
 
-    <md-menu id="profile-menu" positioning="fixed" anchor="profile-menu-button" hidden>
-        <md-menu-item>
-            <div slot="headline">Profile Settings</div>
-        </md-menu-item>
-        <hr class="menu-divider"/>
-        <md-menu-item id="logout-button">
-            <div slot="headline">Log Out</div>
-        </md-menu-item>
-    </md-menu>
+    <ul id="profile-menu" class="dropdown-content">
+        <li><a id="profile-settings" href="profile.html">Profile Settings</a></li>
+        <li class="divider" tabindex="-1"></li>
+        <li><a id="logout-button">Log Out</a></li>
+    </ul>
 
-    <div class="welcome-message">
-        <p>Welcome to your profile.</p>
+    <div class="container">
+        <div class="card profile-card">
+            <div class="card-content center-align">
+                <img id="profile-picture" src="imgs/default-avatar.png" alt="Profile Picture" class="circle responsive-img" width="150">
+                <h5 id="user-name">Loading...</h5>
+                <p id="user-email">Loading...</p>
+            </div>
+        </div>
     </div>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Firebase and Custom JavaScript -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf49wkzv5cI2ymZX4s2_PpNPq_8c9PGqU",
+            authDomain: "votely-492k.firebaseapp.com",
+            projectId: "votely-492k",
+            storageBucket: "votely-492k.appspot.com",
+            messagingSenderId: "460551904614",
+            appId: "1:460551904614:web:a93225f7d674fb651abca7",
+            measurementId: "G-XSDFNR8YK0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const profilePicture = document.getElementById("profile-picture");
+        const userName = document.getElementById("user-name");
+        const userEmail = document.getElementById("user-email");
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is logged in
+                console.log("User info:", user);
+                profilePicture.src = user.photoURL || "imgs/default-avatar.png";
+                userName.textContent = user.displayName || "Unknown User";
+                userEmail.textContent = user.email || "No email available";
+            } else {
+                // Redirect to login if user is not authenticated
+                window.location.href = "index.html";
+            }
+        });
+
+        // Logout functionality
+        const logoutButton = document.getElementById("logout-button");
+        logoutButton.addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                console.log("User logged out successfully.");
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Error logging out:", error);
+            }
+        });
+    </script>
 
 </body>
 </html>

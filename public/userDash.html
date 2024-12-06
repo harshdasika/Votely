@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-signin-client_id" content="988826026614-nqfgqj8h6rcm5ot7us9dcomoq8fuksko.apps.googleusercontent.com">
-    <title>Dashboard</title>
+    <title>User Dashboard</title>
     <link rel="icon" type="image/x-icon" href="imgs/favicon.ico"/>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -27,7 +27,7 @@
     </nav>
 
     <md-menu id="profile-menu" positioning="fixed" anchor="profile-menu-button" hidden>
-        <md-menu-item>
+        <md-menu-item id="profile-settings">
             <div slot="headline">Profile Settings</div>
         </md-menu-item>
         <hr class="menu-divider"/>
@@ -143,6 +143,10 @@
             } catch (error) {
                 console.error("Error logging out:", error);
             }
+        });
+
+        document.getElementById('profile-settings').addEventListener('click', () => {
+            window.location.href = "profile.html";
         });
 
         // refresh group list after creating group
@@ -285,7 +289,7 @@
                     <p><strong>Group ID:</strong> ${group.group_id}</p>
                 </div>
                 <div class="card-action">
-                    <md-button class="enter-group-button" data-group-id="${group.group_id}">Enter Group</md-button>
+                    <md-button class="enter-group-button" data-group-id="${group.group_id}">Enter</md-button>
                 </div>
             `;
             card.innerHTML = cardContent;

@@ -13,13 +13,12 @@ jest.mock('firebase/firestore', () => {
   const originalModule = jest.requireActual('firebase/firestore');
   return {
     ...originalModule,
-    doc: jest.fn((_, collection, id) => ({ collection, id })), // Mock doc to return an identifiable object
+    doc: jest.fn((_, collection, id) => ({ collection, id })),
     getDoc: jest.fn(),
     setDoc: jest.fn(),
   };
 });
 
-// Simplified `voteOnItinerary` function for testing
 async function voteOnItinerary(cardID, groupId, voteType) {
   const auth = getAuth();
   const user = auth.currentUser;
@@ -67,7 +66,7 @@ describe('voteOnItinerary', () => {
 
     expect(result).toBe('Vote yes updated successfully.');
     expect(setDoc).toHaveBeenCalledWith(
-      { collection: 'ItineraryCard', id: 'card_123' }, // Mocked doc reference
+      { collection: 'ItineraryCard', id: 'card_123' },
       { Yes_Votes: ['test_user_id'], No_Votes: [] },
       { merge: true }
     );
